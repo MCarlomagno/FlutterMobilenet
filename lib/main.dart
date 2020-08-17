@@ -3,8 +3,7 @@ import 'dart:io';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:path/path.dart' show join;
-import 'package:path_provider/path_provider.dart';
+import 'package:tflite/tflite.dart';
 
 Future<void> main() async {
   // Ensure that plugin services are initialized so that `availableCameras()`
@@ -43,6 +42,7 @@ class TakePictureScreen extends StatefulWidget {
 
 class TakePictureScreenState extends State<TakePictureScreen> {
   CameraController _controller;
+  String firstPrediction = "";
   Future<void> _initializeControllerFuture;
 
   @override
@@ -59,6 +59,9 @@ class TakePictureScreenState extends State<TakePictureScreen> {
 
     // Next, initialize the controller. This returns a Future.
     _initializeControllerFuture = _controller.initialize();
+    _initializeControllerFuture.then((value) {
+      onLoadModel();
+    });
   }
 
   @override
@@ -66,6 +69,50 @@ class TakePictureScreenState extends State<TakePictureScreen> {
     // Dispose of the controller when the widget is disposed.
     _controller.dispose();
     super.dispose();
+  }
+
+  Future<String> loadModel() async {
+    return Tflite.loadModel(
+      model: "assets/mobilenet_v1_1.0_224.tflite",
+      labels: "assets/labels.txt",
+    );
+  }
+
+  onLoadModel() async {
+    try {
+      String res = await loadModel();
+      print(res);
+    } catch (e) {
+      print('error while model loading');
+      print(e);
+    }
+  }
+
+  startPredictions() {
+    try {
+      _controller.startImageStream((img) async {
+        try {
+          var recognitions = await Tflite.runModelOnFrame(
+            bytesList: img.planes.map((plane) {
+              return plane.bytes;
+            }).toList(), // required
+            imageHeight: img.height,
+            imageWidth: img.width,
+          );
+          if (recognitions.isNotEmpty) {
+            setState(() {
+              firstPrediction = recognitions[0].toString();
+            });
+          }
+        } catch (e) {
+          print('error while running model with current frame');
+          print(e);
+        }
+      });
+    } catch (e) {
+      print('error while streaming camera image');
+      print(e);
+    }
   }
 
   @override
@@ -82,32 +129,42 @@ class TakePictureScreenState extends State<TakePictureScreen> {
 
             final size = MediaQuery.of(context).size.width;
 
-            return Transform.scale(
-              scale: 1.0,
-              child: AspectRatio(
-                aspectRatio: MediaQuery.of(context).size.aspectRatio,
-                child: OverflowBox(
-                  alignment: Alignment.center,
-                  child: FittedBox(
-                    fit: BoxFit.fitHeight,
-                    child: Container(
-                      width: size,
-                      height: size / _controller.value.aspectRatio,
-                      child: Stack(
-                        children: <Widget>[
-                          CameraPreview(_controller),
-                        ],
+            return Stack(
+              children: <Widget>[
+                Transform.scale(
+                  scale: 1.0,
+                  child: AspectRatio(
+                    aspectRatio: MediaQuery.of(context).size.aspectRatio,
+                    child: OverflowBox(
+                      alignment: Alignment.center,
+                      child: FittedBox(
+                        fit: BoxFit.fitHeight,
+                        child: Container(
+                          width: size,
+                          height: size / _controller.value.aspectRatio,
+                          child: Stack(
+                            children: <Widget>[
+                              CameraPreview(_controller),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
+                Center(child: Text(firstPrediction))
+              ],
             );
           } else {
             // Otherwise, display a loading indicator.
             return Center(child: CircularProgressIndicator());
           }
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: startPredictions,
+        child: Icon(Icons.play_arrow),
+        backgroundColor: Colors.white,
       ),
       // floatingActionButton: FloatingActionButton(
       //   child: Icon(Icons.camera_alt),
