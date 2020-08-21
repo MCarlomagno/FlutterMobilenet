@@ -12,14 +12,14 @@ class TensorflowService {
 
   TensorflowService._internal();
 
-  StreamController<String> _predictionController = StreamController();
+  StreamController<List<dynamic>> _predictionController = StreamController();
   Stream get predictionStream => _predictionController.stream;
 
   bool _modelLoaded = false;
 
   Future<void> loadModel() async {
     try {
-      _predictionController.add('');
+      _predictionController.add(null);
       await Tflite.loadModel(
         model: "assets/mobilenet_v1_1.0_224.tflite",
         labels: "assets/labels.txt",
@@ -33,7 +33,7 @@ class TensorflowService {
 
   Future<void> runModel(CameraImage img) async {
     if (_modelLoaded) {
-      var recognitions = await Tflite.runModelOnFrame(
+      List<dynamic> predictions = await Tflite.runModelOnFrame(
         bytesList: img.planes.map((plane) {
           return plane.bytes;
         }).toList(), // required
@@ -42,20 +42,19 @@ class TensorflowService {
       );
 
       // shows predictions on screen
-      if (recognitions.isNotEmpty) {
-        
+      if (predictions.isNotEmpty) {
         if (_predictionController.isClosed) {
           // restart if was closed
           _predictionController = StreamController();
         }
         // notify to listeners
-        _predictionController.add(recognitions[0].toString());
+        _predictionController.add(predictions);
       }
     }
   }
 
   Future<void> stopPredictions() async {
-    _predictionController.add("");
+    _predictionController.add(null);
     await _predictionController.close();
   }
 
