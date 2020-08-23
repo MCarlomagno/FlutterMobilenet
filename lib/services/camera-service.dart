@@ -41,6 +41,7 @@ class CameraService {
           // Loads the model and recognizes frames
           available = false;
           await _tensorflowService.runModel(img);
+          await Future.delayed(Duration(seconds: 1));
           available = true;
         }
       } catch (e) {

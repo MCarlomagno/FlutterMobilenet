@@ -13,13 +13,13 @@ class TensorflowService {
   TensorflowService._internal();
 
   StreamController<List<dynamic>> _predictionController = StreamController();
-  Stream get predictionStream => _predictionController.stream;
+  Stream get predictionStream => this._predictionController.stream;
 
   bool _modelLoaded = false;
 
   Future<void> loadModel() async {
     try {
-      _predictionController.add(null);
+      this._predictionController.add(null);
       await Tflite.loadModel(
         model: "assets/mobilenet_v1_1.0_224.tflite",
         labels: "assets/labels.txt",
@@ -39,26 +39,29 @@ class TensorflowService {
         }).toList(), // required
         imageHeight: img.height,
         imageWidth: img.width,
+        numResults: 3,
       );
-
       // shows predictions on screen
       if (predictions.isNotEmpty) {
-        if (_predictionController.isClosed) {
+        print(predictions[0].toString());
+        if (this._predictionController.isClosed) {
           // restart if was closed
-          _predictionController = StreamController();
+          this._predictionController = StreamController();
         }
         // notify to listeners
-        _predictionController.add(predictions);
+        this._predictionController.add(predictions);
       }
     }
   }
 
   Future<void> stopPredictions() async {
-    _predictionController.add(null);
-    await _predictionController.close();
+    if (!this._predictionController.isClosed) {
+      this._predictionController.add(null);
+      this._predictionController.close();
+    }
   }
 
   void dispose() async {
-    await stopPredictions();
+    this._predictionController.close();
   }
 }

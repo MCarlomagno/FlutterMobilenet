@@ -7,14 +7,15 @@ class CameraHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       child: SafeArea(
-        minimum: EdgeInsets.only(top: 50),
+        minimum: EdgeInsets.only(top: 45),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Text(
-              'FlutterMobilenet',
-              style: TextStyle(fontSize: 20),
-            )
+            Image(
+              image: AssetImage('assets/white_logo.png'),
+              height: 40,
+              width: 40,
+            ),
           ],
         ),
       ),
