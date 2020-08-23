@@ -16,10 +16,10 @@ class CameraScreen extends StatelessWidget {
           return LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.center,
-            colors: [Colors.transparent, Colors.black]
-          ).createShader(Rect.fromLTRB(0, 0, rect.width, rect.height/2));
+            colors: [ Colors.black, Colors.transparent]
+          ).createShader(Rect.fromLTRB(0, 0, rect.width, rect.height/ 4));
         },
-        blendMode: BlendMode.dstIn,
+        blendMode: BlendMode.darken,
         child: Transform.scale(
           scale: 1.0,
           child: AspectRatio(
