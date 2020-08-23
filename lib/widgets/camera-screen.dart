@@ -1,11 +1,15 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 
-class CameraScreen extends StatelessWidget {
-  const CameraScreen({Key key, @required this.controller}) : super(key: key);
-
+class CameraScreen extends StatefulWidget {
+  CameraScreen({Key key, @required this.controller}) : super(key: key);
   final CameraController controller;
+  @override
+  _CameraScreenState createState() => _CameraScreenState();
+}
 
+class _CameraScreenState extends State<CameraScreen> {
+  @override
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size.width;
@@ -14,10 +18,8 @@ class CameraScreen extends StatelessWidget {
       child: ShaderMask(
         shaderCallback: (rect) {
           return LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.center,
-            colors: [ Colors.black, Colors.transparent]
-          ).createShader(Rect.fromLTRB(0, 0, rect.width, rect.height/ 4));
+                  begin: Alignment.topCenter, end: Alignment.center, colors: [Colors.black, Colors.transparent])
+              .createShader(Rect.fromLTRB(0, 0, rect.width, rect.height / 4));
         },
         blendMode: BlendMode.darken,
         child: Transform.scale(
@@ -30,10 +32,10 @@ class CameraScreen extends StatelessWidget {
                 fit: BoxFit.fitHeight,
                 child: Container(
                   width: size,
-                  height: size / controller.value.aspectRatio,
+                  height: size / widget.controller.value.aspectRatio,
                   child: Stack(
                     children: <Widget>[
-                      CameraPreview(controller),
+                      CameraPreview(widget.controller),
                     ],
                   ),
                 ),
@@ -43,5 +45,10 @@ class CameraScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 }
