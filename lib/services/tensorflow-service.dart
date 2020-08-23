@@ -3,13 +3,15 @@ import 'dart:async';
 import 'package:camera/camera.dart';
 import 'package:tflite/tflite.dart';
 
+// singleton class used as a service
 class TensorflowService {
+  // singleton boilerplate
   static final TensorflowService _tensorflowService = TensorflowService._internal();
 
   factory TensorflowService() {
     return _tensorflowService;
   }
-
+  // singleton boilerplate
   TensorflowService._internal();
 
   StreamController<List<dynamic>> _predictionController = StreamController();

@@ -92,16 +92,30 @@ class HomeState extends State<Home> with TickerProviderStateMixin, WidgetsBindin
             // If the Future is complete, display the preview.
             return Stack(
               children: <Widget>[
+
+                // shows the camera preview
                 CameraScreen(
                   controller: _cameraService.cameraController,
                 ),
+
+                // shows the header with the icon
                 CameraHeader(),
+
+                // shows the frame with the corners
                 CameraFrame(),
+
+                // shows the camera button
                 CameraButton(
                   onToggle: onToggle,
                   ripplesAnimationController: _ripplesAnimationcontroller,
                 ),
-                _predictionsContainer(),
+
+                // shows the predictions on the bottom
+                Prediction(
+                  ready: animationFinished,
+                  onEndAnimation: onEndAnimation,
+                  isPredictionsOpened: isPredictionsOpened,
+                ),
               ],
             );
           } else {
@@ -134,39 +148,25 @@ class HomeState extends State<Home> with TickerProviderStateMixin, WidgetsBindin
     });
   }
 
-  Widget _predictionsContainer() {
-    return Align(
-      alignment: Alignment.bottomCenter,
-      child: AnimatedContainer(
-        width: !isPredictionsOpened ? 0 : MediaQuery.of(context).size.width,
-        height: !isPredictionsOpened ? 0 : 200,
-        duration: Duration(milliseconds: 500),
-        curve: Curves.easeInOut,
-        child: Prediction(
-          ready: animationFinished,
-        ),
-        onEnd: () {
-          if (isPredictionsOpened) {
-            startPredictions();
-          }
+  onEndAnimation() {
+    if (isPredictionsOpened) {
+      startPredictions();
+    }
 
-          setState(() {
-            animationFinished = true;
-          });
-        },
-      ),
-    );
+    setState(() {
+      animationFinished = true;
+    });
   }
-
-
-
-
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     _appLifecycleState = state;
     if (_appLifecycleState == AppLifecycleState.resumed) {
-      this.initState();
+      // starts button animation
+      _buildRipplesAnimation();
+
+      // starts camera and then loads the tensorflow model
+      _initializeCamera().then((value) async => {await _tensorflowService.loadModel()});
     }
   }
 
@@ -175,6 +175,7 @@ class HomeState extends State<Home> with TickerProviderStateMixin, WidgetsBindin
     // Dispose of the controller when the widget is disposed.
     _cameraService.dispose();
     _tensorflowService.dispose();
+    _initializeControllerFuture = null;
     super.dispose();
   }
 }

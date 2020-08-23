@@ -1,13 +1,15 @@
 import 'package:FlutterMobilenet/services/tensorflow-service.dart';
 import 'package:camera/camera.dart';
 
+// singleton class used as a service
 class CameraService {
+  // singleton boilerplate
   static final CameraService _cameraService = CameraService._internal();
 
   factory CameraService() {
     return _cameraService;
   }
-
+  // singleton boilerplate
   CameraService._internal();
 
   TensorflowService _tensorflowService = TensorflowService();
@@ -15,7 +17,6 @@ class CameraService {
   CameraController _cameraController;
   CameraController get cameraController => _cameraController;
 
-  int frameFrecuencyInSeconds = 2;
   bool available = true;
 
   Future startService(CameraDescription cameraDescription) async {
