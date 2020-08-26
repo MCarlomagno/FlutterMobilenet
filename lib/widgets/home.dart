@@ -5,6 +5,8 @@ import 'package:FlutterMobilenet/widgets/camera-frame.dart';
 import 'package:FlutterMobilenet/widgets/prediction.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:wave/config.dart';
+import 'package:wave/wave.dart';
 import 'camera-header.dart';
 import 'camera-screen.dart';
 
@@ -28,15 +30,6 @@ class HomeState extends State<Home> with TickerProviderStateMixin, WidgetsBindin
   // future for camera initialization
   Future<void> _initializeControllerFuture;
 
-  // for ripples animation in camera button
-  AnimationController _ripplesAnimationcontroller;
-
-  // flag that represents if the predictions are showed
-  bool isPredictionsOpened = false;
-
-  // flag that represents if the animation opening and closing the predictions is running
-  bool animationFinished = true;
-
   AppLifecycleState _appLifecycleState;
 
   @override
@@ -44,23 +37,23 @@ class HomeState extends State<Home> with TickerProviderStateMixin, WidgetsBindin
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
-    // starts button animation
-    _buildRipplesAnimation();
-
     // starts camera and then loads the tensorflow model
-    _initializeCamera().then((value) async => {await _tensorflowService.loadModel()});
+    startUp();
   }
 
-  _buildRipplesAnimation() {
-    _ripplesAnimationcontroller = AnimationController(
-      vsync: this,
-      lowerBound: 0.5,
-      duration: Duration(seconds: 2),
-    )..repeat();
-  }
-
-  Future _initializeCamera() async {
-    _initializeControllerFuture = _cameraService.startService(widget.camera);
+  Future startUp() async {
+    if (!mounted) {
+      return;
+    }
+    if (_initializeControllerFuture == null) {
+      _initializeControllerFuture = _cameraService.startService(widget.camera).then((value) async {
+        await _tensorflowService.loadModel();
+        startPredictions();
+      });
+    } else {
+      await _tensorflowService.loadModel();
+      startPredictions();
+    }
   }
 
   startPredictions() async {
@@ -81,6 +74,8 @@ class HomeState extends State<Home> with TickerProviderStateMixin, WidgetsBindin
 
   @override
   Widget build(BuildContext context) {
+    var wavesHeight = 1 - 310 / MediaQuery.of(context).size.height;
+
     return Scaffold(
       // Wait until the controller is initialized before displaying the
       // camera preview. Use a FutureBuilder to display a loading spinner
@@ -92,7 +87,6 @@ class HomeState extends State<Home> with TickerProviderStateMixin, WidgetsBindin
             // If the Future is complete, display the preview.
             return Stack(
               children: <Widget>[
-
                 // shows the camera preview
                 CameraScreen(
                   controller: _cameraService.cameraController,
@@ -102,19 +96,37 @@ class HomeState extends State<Home> with TickerProviderStateMixin, WidgetsBindin
                 CameraHeader(),
 
                 // shows the frame with the corners
-                CameraFrame(),
+                // CameraFrame(),
+
+                // test
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Container(
+                    child: WaveWidget(
+                      config: CustomConfig(
+                        colors: [Color(0xFFFF00FF), Color(0xFFFF00FF), Color(0xFFFF00FF), Color(0xFFFF00FF)],
+                        durations: [6000, 12000, 24000, 48000],
+                        heightPercentages: [wavesHeight, wavesHeight, wavesHeight, wavesHeight],
+                        blur: MaskFilter.blur(BlurStyle.outer, 5.0),
+                      ),
+                      backgroundColor: Colors.transparent,
+                      size: Size(double.infinity, double.infinity),
+                      waveAmplitude: 5.0,
+                    ),
+                  ),
+                ),
 
                 // shows the camera button
-                CameraButton(
-                  onToggle: onToggle,
-                  ripplesAnimationController: _ripplesAnimationcontroller,
-                ),
+                // CameraButton(
+                //   onToggle: onToggle,
+                //   ripplesAnimationController: _ripplesAnimationcontroller,
+                // ),
 
                 // shows the predictions on the bottom
                 Prediction(
-                  ready: animationFinished,
-                  onEndAnimation: onEndAnimation,
-                  isPredictionsOpened: isPredictionsOpened,
+                  ready: true,
+                  // onEndAnimation: onEndAnimation,
+                  // isPredictionsOpened: isPredictionsOpened,
                 ),
               ],
             );
@@ -124,49 +136,46 @@ class HomeState extends State<Home> with TickerProviderStateMixin, WidgetsBindin
           }
         },
       ),
-      floatingActionButton: animationFinished && isPredictionsOpened
-          ? Padding(
-              padding: EdgeInsets.only(bottom: 155),
-              child: FloatingActionButton(
-                  backgroundColor: Color(0xFFFF00FF),
-                  child: Icon(
-                    Icons.stop,
-                    color: Colors.white,
-                  ),
-                  onPressed: () {
-                    onToggle();
-                  }),
-            )
-          : Container(),
+      // floatingActionButton: animationFinished && isPredictionsOpened
+      //     ? Padding(
+      //         padding: EdgeInsets.only(bottom: 155),
+      //         child: FloatingActionButton(
+      //             backgroundColor: Color(0xFFFF00FF),
+      //             child: Icon(
+      //               Icons.stop,
+      //               color: Colors.white,
+      //             ),
+      //             onPressed: () {
+      //               onToggle();
+      //             }),
+      //       )
+      //     : Container(),
     );
   }
 
-  onToggle() {
-    setState(() {
-      animationFinished = false;
-      isPredictionsOpened = !isPredictionsOpened;
-    });
-  }
+  // onToggle() {
+  //   setState(() {
+  //     animationFinished = false;
+  //     isPredictionsOpened = !isPredictionsOpened;
+  //   });
+  // }
 
-  onEndAnimation() {
-    if (isPredictionsOpened) {
-      startPredictions();
-    }
+  // onEndAnimation() {
+  //   if (isPredictionsOpened) {
+  //     startPredictions();
+  //   }
 
-    setState(() {
-      animationFinished = true;
-    });
-  }
+  //   setState(() {
+  //     animationFinished = true;
+  //   });
+  // }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     _appLifecycleState = state;
     if (_appLifecycleState == AppLifecycleState.resumed) {
-      // starts button animation
-      _buildRipplesAnimation();
-
       // starts camera and then loads the tensorflow model
-      _initializeCamera().then((value) async => {await _tensorflowService.loadModel()});
+      startUp();
     }
   }
 

@@ -3,16 +3,10 @@ import 'package:FlutterMobilenet/services/tensorflow-service.dart';
 import 'package:flutter/material.dart';
 
 class Prediction extends StatefulWidget {
-  Prediction({Key key, @required this.ready, @required this.onEndAnimation, @required this.isPredictionsOpened})
-      : super(key: key);
+  Prediction({Key key, @required this.ready}) : super(key: key);
 
   // indicates if the animation is finished to start streaming (for better performance)
   final bool ready;
-
-  // function that notify to parent widget when the animation is finished
-  final Function onEndAnimation;
-
-  final bool isPredictionsOpened;
 
   @override
   _PredictionState createState() => _PredictionState();
@@ -58,11 +52,15 @@ class _PredictionState extends State<Prediction> {
   Widget build(BuildContext context) {
     return Align(
       alignment: Alignment.bottomCenter,
-      child: AnimatedContainer(
-        width: !widget.isPredictionsOpened ? 0 : MediaQuery.of(context).size.width,
-        height: !widget.isPredictionsOpened ? 0 : 200,
-        duration: Duration(milliseconds: 500),
-        curve: Curves.easeInOut,
+      child:
+          // AnimatedContainer(
+          //   width: !widget.isPredictionsOpened ? 0 : MediaQuery.of(context).size.width,
+          //   height: !widget.isPredictionsOpened ? 0 : 200,
+          //   duration: Duration(milliseconds: 500),
+          //   curve: Curves.easeInOut,
+          //   child:
+          Container(
+        height: 200,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
@@ -89,8 +87,10 @@ class _PredictionState extends State<Prediction> {
             ),
           ],
         ),
-        onEnd: () => widget.onEndAnimation(),
       ),
+
+      // onEnd: () => widget.onEndAnimation(),
+      // ),
     );
   }
 
@@ -140,13 +140,13 @@ class _PredictionState extends State<Prediction> {
                       width: _barWitdth,
                       child: LinearProgressIndicator(
                         backgroundColor: Colors.transparent,
-                        value: _currentPrediction[index]['confidence'],
+                        value: _currentPrediction[index]['confidence'] ,
                       ),
                     ),
                     Container(
                       width: _labelConfidence,
                       child: Text(
-                        _currentPrediction[index]['confidence'].toStringAsFixed(2),
+                        (_currentPrediction[index]['confidence'] * 100).toStringAsFixed(0) + '%',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
