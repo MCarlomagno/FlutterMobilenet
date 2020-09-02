@@ -52,14 +52,7 @@ class _PredictionState extends State<Prediction> {
   Widget build(BuildContext context) {
     return Align(
       alignment: Alignment.bottomCenter,
-      child:
-          // AnimatedContainer(
-          //   width: !widget.isPredictionsOpened ? 0 : MediaQuery.of(context).size.width,
-          //   height: !widget.isPredictionsOpened ? 0 : 200,
-          //   duration: Duration(milliseconds: 500),
-          //   curve: Curves.easeInOut,
-          //   child:
-          Container(
+      child: Container(
         height: 200,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -88,9 +81,6 @@ class _PredictionState extends State<Prediction> {
           ],
         ),
       ),
-
-      // onEnd: () => widget.onEndAnimation(),
-      // ),
     );
   }
 
@@ -140,7 +130,7 @@ class _PredictionState extends State<Prediction> {
                       width: _barWitdth,
                       child: LinearProgressIndicator(
                         backgroundColor: Colors.transparent,
-                        value: _currentPrediction[index]['confidence'] ,
+                        value: _currentPrediction[index]['confidence'],
                       ),
                     ),
                     Container(
