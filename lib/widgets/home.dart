@@ -1,6 +1,6 @@
 import 'package:FlutterMobilenet/services/camera-service.dart';
 import 'package:FlutterMobilenet/services/tensorflow-service.dart';
-import 'package:FlutterMobilenet/widgets/prediction.dart';
+import 'package:FlutterMobilenet/widgets/recognition.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'camera-header.dart';
@@ -44,17 +44,17 @@ class HomeState extends State<Home> with TickerProviderStateMixin, WidgetsBindin
     if (_initializeControllerFuture == null) {
       _initializeControllerFuture = _cameraService.startService(widget.camera).then((value) async {
         await _tensorflowService.loadModel();
-        startPredictions();
+        startRecognitions();
       });
     } else {
       await _tensorflowService.loadModel();
-      startPredictions();
+      startRecognitions();
     }
   }
 
-  startPredictions() async {
+  startRecognitions() async {
     try {
-      // starts the camera stream on every frame and then uses it to predict the result every 1 second
+      // starts the camera stream on every frame and then uses it to recognize the result every 1 second
       _cameraService.startStreaming();
     } catch (e) {
       print('error streaming camera image');
@@ -62,10 +62,10 @@ class HomeState extends State<Home> with TickerProviderStateMixin, WidgetsBindin
     }
   }
 
-  stopPredictions() async {
+  stopRecognitions() async {
     // closes the streams
     await _cameraService.stopImageStream();
-    await _tensorflowService.stopPredictions();
+    await _tensorflowService.stopRecognitions();
   }
 
   @override
@@ -90,11 +90,9 @@ class HomeState extends State<Home> with TickerProviderStateMixin, WidgetsBindin
                 // shows the header with the icon
                 CameraHeader(),
 
-                // shows the predictions on the bottom
-                Prediction(
+                // shows the recognition on the bottom
+                Recognition(
                   ready: true,
-                  // onEndAnimation: onEndAnimation,
-                  // isPredictionsOpened: isPredictionsOpened,
                 ),
               ],
             );

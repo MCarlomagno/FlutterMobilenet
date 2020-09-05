@@ -2,24 +2,24 @@ import 'dart:async';
 import 'package:FlutterMobilenet/services/tensorflow-service.dart';
 import 'package:flutter/material.dart';
 
-class Prediction extends StatefulWidget {
-  Prediction({Key key, @required this.ready}) : super(key: key);
+class Recognition extends StatefulWidget {
+  Recognition({Key key, @required this.ready}) : super(key: key);
 
   // indicates if the animation is finished to start streaming (for better performance)
   final bool ready;
 
   @override
-  _PredictionState createState() => _PredictionState();
+  _RecognitionState createState() => _RecognitionState();
 }
 
 // to track the subscription state during the lifecicle of the component
 enum SubscriptionState { Active, Done }
 
-class _PredictionState extends State<Prediction> {
-  // current list of predictions
-  List<dynamic> _currentPrediction = [];
+class _RecognitionState extends State<Recognition> {
+  // current list of recognition
+  List<dynamic> _currentRecognition = [];
 
-  // listens the changes in tensorflow predictions
+  // listens the changes in tensorflow recognitions
   StreamSubscription _streamSubscription;
 
   // tensorflow service injection
@@ -30,19 +30,19 @@ class _PredictionState extends State<Prediction> {
     super.initState();
 
     // starts the streaming to tensorflow results
-    _startPredictionStreaming();
+    _startRecognitionStreaming();
   }
 
-  _startPredictionStreaming() {
+  _startRecognitionStreaming() {
     if (_streamSubscription == null) {
-      _streamSubscription = _tensorflowService.predictionStream.listen((prediction) {
-        if (prediction != null) {
-          // rebuilds the screen with the new predictions
+      _streamSubscription = _tensorflowService.recognitionStream.listen((recognition) {
+        if (recognition != null) {
+          // rebuilds the screen with the new recognitions
           setState(() {
-            _currentPrediction = prediction;
+            _currentRecognition = recognition;
           });
         } else {
-          _currentPrediction = [];
+          _currentRecognition = [];
         }
       });
     }
@@ -68,10 +68,10 @@ class _PredictionState extends State<Prediction> {
                 child: Column(
                   children: widget.ready
                       ? <Widget>[
-                          // shows prediction title
+                          // shows recognition title
                           _titleWidget(),
 
-                          // shows predictions list
+                          // shows recognitions list
                           _contentWidget(),
                         ]
                       : <Widget>[],
@@ -91,7 +91,7 @@ class _PredictionState extends State<Prediction> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
           Text(
-            "Predictions",
+            "Recognitions",
             style: TextStyle(fontSize: 30, fontWeight: FontWeight.w300),
           ),
         ],
@@ -106,13 +106,13 @@ class _PredictionState extends State<Prediction> {
     var _labelConfidence = 30.0;
     var _barWitdth = _width - _labelWitdth - _labelConfidence - _padding * 2.0;
 
-    if (_currentPrediction.length > 0) {
+    if (_currentRecognition.length > 0) {
       return Container(
         height: 150,
         child: ListView.builder(
-          itemCount: _currentPrediction.length,
+          itemCount: _currentRecognition.length,
           itemBuilder: (context, index) {
-            if (_currentPrediction.length > index) {
+            if (_currentRecognition.length > index) {
               return Container(
                 height: 40,
                 child: Row(
@@ -121,7 +121,7 @@ class _PredictionState extends State<Prediction> {
                       padding: EdgeInsets.only(left: _padding, right: _padding),
                       width: _labelWitdth,
                       child: Text(
-                        _currentPrediction[index]['label'],
+                        _currentRecognition[index]['label'],
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -130,13 +130,13 @@ class _PredictionState extends State<Prediction> {
                       width: _barWitdth,
                       child: LinearProgressIndicator(
                         backgroundColor: Colors.transparent,
-                        value: _currentPrediction[index]['confidence'],
+                        value: _currentRecognition[index]['confidence'],
                       ),
                     ),
                     Container(
                       width: _labelConfidence,
                       child: Text(
-                        (_currentPrediction[index]['confidence'] * 100).toStringAsFixed(0) + '%',
+                        (_currentRecognition[index]['confidence'] * 100).toStringAsFixed(0) + '%',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
